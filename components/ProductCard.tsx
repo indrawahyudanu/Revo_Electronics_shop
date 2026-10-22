@@ -29,7 +29,7 @@ function Badge({ variant }: BadgeProps) {
 
 //fungsi untuk qtyselector event
 function QtySelector ({ product }: QtySelectorProps) {
-  const [qty, setQty] = useState(1);
+  const [qty, setQty] = useState(0);
   const increase = () => {
     if (qty < product.stock) {
       setQty(qty + 1);

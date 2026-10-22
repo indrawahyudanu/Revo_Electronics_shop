@@ -26,8 +26,8 @@ export interface Product {
   id: string | number;
   name: string;
   sku?: string;
+   price: number;
   stock: number;
-  price: number;
   category_id?: string;
   is_sale?: boolean;
 }

@@ -2,10 +2,12 @@
 
 import { useState } from "react";
 
+
 import Header from "../components/Header";
 import { Product } from "../types/product";
 import ProductCard from "../components/ProductCard";
 import Footer from "../components/Footer";
+
 
 
 const products: Product[] = [
@@ -16,14 +18,14 @@ const products: Product[] = [
 ];
 
 
-//fungsi cari produck
 export default function Page() {
   const [query, setQuery] = useState("");
-  const [cart, setCart] = useState<Product[]>([]);
-  
-  const filtered = products.filter((p) =>
+
+ const filtered = products.filter((p) =>
     p.name.toLowerCase().includes(query.toLowerCase())
 );
+
+  const [cart, setCart] = useState<Product[]>([]);
 
   const addToCart = (product: Product) => {
     setCart([...cart, product]);
@@ -42,7 +44,6 @@ export default function Page() {
               placeholder="Search products..."
             />
           </div>
-
 
           <div className="p-4 flex gap-4 flex-wrap">
             {filtered.map((p) => (
