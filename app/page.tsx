@@ -1,58 +1,48 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { categories } from "../data/category";
 
-
-import Header from "../components/Header";
-import { Product } from "../types/product";
-import ProductCard from "../components/ProductCard";
-import Footer from "../components/Footer";
-
-
-
-const products: Product[] = [
-  { id: 1, name: "Laptop Stand", price: 250000, stock: 5, is_sale:true },
-  { id: 2, name: "Keyboard", price: 450000, stock: 0},
-  { id: 3, name: "Mouse", price: 150000, stock: 4 },
-  { id: 4, name: "CPU", price: 160000, stock: 4 },
-];
-
-
-export default function Page() {
+export default function Home() {
   const [query, setQuery] = useState("");
+  const router = useRouter();
 
- const filtered = products.filter((p) =>
-    p.name.toLowerCase().includes(query.toLowerCase())
-);
-
-  const [cart, setCart] = useState<Product[]>([]);
-
-  const addToCart = (product: Product) => {
-    setCart([...cart, product]);
+  // Saat submit search → arahkan ke /products (nanti bisa kirim query juga)
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    router.push(`/products?q=${encodeURIComponent(query)}`);
   };
-  
 
   return (
-    <div>
-      <Header />
-          <div className="p-4">
-            <input
-              type="text"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              className="w-full bg-white-500 border border-gray-700 rounded px-3 py-2 text-black"
-              placeholder="Search products..."
-            />
-          </div>
+    <div className="p-4">
+      <h1 className="mb-4 text-2xl font-bold">RevoShop</h1>
 
-          <div className="p-4 flex gap-4 flex-wrap">
-            {filtered.map((p) => (
-              <ProductCard key={p.id} product={p} onAddToCart={addToCart} />
-              
-            ))}
-          </div>
+      {/* Search produk */}
+      <form onSubmit={handleSearch} className="mb-6">
+        <input
+          type="text"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          className="w-full rounded border border-gray-700 px-3 py-2 text-black"
+          placeholder="Cari produk..."
+        />
+      </form>
 
-      <Footer />
+      {/* Daftar kategori */}
+      <h2 className="mb-3 text-lg font-semibold">Kategori</h2>
+      <div className="flex flex-wrap gap-3">
+        {categories.map((c) => (
+          <Link
+            key={c.id}
+            href={`/categories/${c.id}`}
+            className="rounded border border-gray-700 px-4 py-2 hover:bg-gray-100 hover:text-black"
+          >
+            {c.name}
+          </Link>
+        ))}
+      </div>
     </div>
   );
 }
