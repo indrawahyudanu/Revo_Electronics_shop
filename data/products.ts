@@ -12,3 +12,8 @@ export const products: Product[] = [
 export function getProductById(id: string): Product | undefined {
   return products.find((p) => String(p.id) === id);
 }
+
+// Ambil semua produk yang sedang sale
+export function getSaleProducts(): Product[] {
+  return products.filter((p) => p.is_sale === true);
+}

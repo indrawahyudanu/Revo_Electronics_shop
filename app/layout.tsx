@@ -28,7 +28,7 @@ export default function RootLayout({ children }: LayoutProps<"/products">) {
         <Header />
 
         {/* Konten halaman (page.tsx) akan berganti-ganti di bawah sini */}
-        <section>{children}</section>
+          <section className="flex-1">{children}</section>
 
 
         <Footer />

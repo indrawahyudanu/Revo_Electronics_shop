@@ -30,11 +30,13 @@ export interface Product {
   stock: number;
   category_id?: number;
   is_sale?: boolean;
+  image?: string;
 }
 
 export interface Category {
   id: string | number;
   name: string;
+  image?: string;
 }
 
 export interface Orders {

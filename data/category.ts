@@ -1,11 +1,10 @@
 import { Category } from "../types/product";
 
-// Daftar kategori. id dipakai untuk relasi ke produk (category_id) & untuk URL.
 export const categories: Category[] = [
-  { id: 1, name: "TV" },
-  { id: 2, name: "Handphone" },
-  { id: 3, name: "Accessories" },
-  { id: 4, name: "Mesin Cuci" },
+  { id: 1, name: "TV", image: "/category-TV.jpg" },
+  { id: 2, name: "Handphone", image: "/category-Handphone.png" },
+  { id: 3, name: "Accessories", image: "/category-Ac.jpg" },
+  { id: 4, name: "Mesin Cuci", image: "/category-mesin cuci.jpg" },
 ];
 
 // Helper: cari satu kategori berdasarkan id (dari URL, selalu string).
