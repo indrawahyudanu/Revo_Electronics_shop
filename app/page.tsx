@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -7,7 +8,7 @@ import Image from "next/image";
 import { categories } from "../data/category";
 import { getSaleProducts } from "../data/products";
 import ProductCard from "../components/ProductCard";
-
+import AllProducts from "../components/AllProducts";
 
 export default function Home() {
   const [query, setQuery] = useState("");
@@ -68,6 +69,14 @@ export default function Home() {
           <ProductCard key={p.id} product={p} />
         ))}
       </div>
+
+      {/* Semua Produk */}
+      <h2 className="mb-3 mt-8 text-lg font-semibold">Semua Produk</h2>
+      <Suspense fallback={<p>Memuat produk...</p>}>
+      <AllProducts />
+      </Suspense>
+
+      
 
 
     </div>

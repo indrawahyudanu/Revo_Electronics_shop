@@ -4,9 +4,10 @@ import { useState } from "react";
 import type { Category } from "../types/product";
 
 const categories: Category[] = [
-  { id: 1, name: "Elektronik" },
-  { id: 2, name: "Aksesoris" },
-  { id: 3, name: "Komputer" },
+  { id: 1, name: "TV" },
+  { id: 2, name: "Handphone" },
+  { id: 3, name: "Air Conditioner" },
+  { id: 4, name: "Mesin Cuci" },
 ];
 
 export default function ProductForm() {

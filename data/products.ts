@@ -17,3 +17,12 @@ export function getProductById(id: string): Product | undefined {
 export function getSaleProducts(): Product[] {
   return products.filter((p) => p.is_sale === true);
 }
+
+// semua produk
+
+export async function getAllProducts(): Promise<Product[]> {
+  const base = process.env.NEXT_PUBLIC_API_BASE_URL;
+  const res = await fetch(`${base}/products`, { cache: "no-store" });
+  if (!res.ok) throw new Error("Gagal mengambil produk");
+  return res.json();
+}
