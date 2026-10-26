@@ -24,7 +24,7 @@ export default function RootLayout({ children }: LayoutProps<"/products">) {
     <html
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
-      <body className="min-h-full flex flex-col">
+      <body className="min-h-full flex flex-col bg-gray-100">
         <Header />
 
         {/* Konten halaman (page.tsx) akan berganti-ganti di bawah sini */}
