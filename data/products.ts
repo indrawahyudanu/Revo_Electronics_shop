@@ -15,9 +15,13 @@ export async function getSaleProducts(): Promise<Product[]> {
 }
 
 // semua produk
-export async function getAllProducts(): Promise<Product[]> {
+export async function getAllProducts(query = ""): Promise<Product[]> {
   const base = process.env.NEXT_PUBLIC_API_BASE_URL;
-  const res = await fetch(`${base}/products`, { cache: "no-store" });
+  const url = query
+    ? `${base}/products/?q=${encodeURIComponent(query)}`
+    : `${base}/products/`;
+  const res = await fetch(url, { cache: "no-store" });
   if (!res.ok) throw new Error("Gagal mengambil produk");
   return res.json();
 }
+

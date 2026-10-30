@@ -1,26 +1,33 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Gunakan off-white/light gray khas Apple untuk background terang */
+  --background: #f5f5f7;
+  /* Gunakan dark charcoal untuk teks agar tidak terlalu kontras seperti hitam pekat */
+  --foreground: #1d1d1f;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
+  /* Tambahkan Apple system font stack ke dalam font-sans */
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif;
   --font-mono: var(--font-geist-mono);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    /* Mode gelap Apple menggunakan hitam pekat dipadu abu-abu gelap */
+    --background: #000000;
+    --foreground: #f5f5f7;
   }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
+  /* Membuat rendering teks menjadi lebih tajam dan halus ala macOS/iOS */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
