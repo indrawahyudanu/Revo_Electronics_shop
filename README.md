@@ -4,6 +4,11 @@ Revo Electronics Shop adalah aplikasi web toko online elektronik yang dibangun d
 
 🔗 **Live demo:** https://revoshop-seven.vercel.app
 
+## Tampilan
+
+### Beranda
+
+<img src="public/screenshots/homepage.png" alt="Halaman Beranda" width="800" />
 
 ## Fitur
 
@@ -201,3 +206,8 @@ Proyek ini dapat di-deploy ke [Vercel](https://vercel.com/).
    ```
 
    Pilih environment **Production**, lalu isi dengan URL backend produksi. Jalankan `vercel --prod` untuk menerapkannya.
+
+## Tampilan
+
+### Beranda
+![Beranda](public\screenshots\homepage.png)
