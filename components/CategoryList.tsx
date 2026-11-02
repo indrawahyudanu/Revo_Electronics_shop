@@ -24,7 +24,7 @@ export default async function CategoryList() {
             return (
               <Link
                 key={c.id}
-                href={`/categories/${c.id}`}
+                href={`/categories/${c.slug}`}
                 className="group flex flex-col items-center justify-between p-5 bg-white dark:bg-neutral-900 rounded-2xl border border-neutral-200/80 dark:border-neutral-800 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1"
               >
                 {/* Wadah Gambar Kategori */}

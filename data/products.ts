@@ -35,3 +35,15 @@ export async function getSaleProducts(): Promise<Product[]> {
 }
 
 
+
+// Ambil produk berdasarkan slug kategori
+export async function getProductsByCategory(slug: string): Promise<Product[]> {
+  const base = process.env.NEXT_PUBLIC_API_BASE_URL;
+  try {
+    const res = await fetch(`${base}/products/?category=${slug}`, { cache: "no-store" });
+    if (!res.ok) return [];
+    return res.json();
+  } catch {
+    return [];
+  }
+}

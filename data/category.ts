@@ -1,6 +1,5 @@
 import { Category } from "../types/product";
 
-
 export async function getCategories(): Promise<Category[]> {
   const base = process.env.NEXT_PUBLIC_API_BASE_URL;
   try {
