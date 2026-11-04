@@ -15,7 +15,7 @@ const HELP_LINKS = [
 
 const AKSES_KHUSUS_LINKS = [
   { href: '/admin/add_product', label: 'Tambah Produk' },
-  { href: '/admin/product', label: 'Edit Produk' },
+  { href: '/admin/products', label: 'Edit Produk' },
 
 ];
 
