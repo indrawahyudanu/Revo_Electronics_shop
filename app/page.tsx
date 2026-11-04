@@ -4,11 +4,14 @@ import { Suspense } from "react";
 import AllProducts from "../components/AllProducts";
 import SaleProducts from "../components/SaleProducts";
 import CategoryList from "../components/CategoryList";
+import Carousel from "../components/Carousel";
 
 export default function Home() {
   
   return (
-      <div className="p-4">
+
+    <div className="p-4">
+          <Carousel />
 
         <h2 className="mb-3 text-lg font-semibold"></h2>
         <Suspense fallback={<p>Memuat kategori...</p>}>

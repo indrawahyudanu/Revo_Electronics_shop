@@ -67,6 +67,13 @@ export interface ProductCardProps {
 export type Variant = "in-stock" | "out-of-stock";
 
 
+interface RegisterFormData {
+  username: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+}
+
 
 
 

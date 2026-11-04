@@ -1,8 +1,5 @@
 import Link from 'next/link';
 
-const NAV_LINKS = [
-  { href: '/Admin/add-product', label: 'Admin Dashboard' },
-];
 
 const SHOP_LINKS = [
   { href: '/categories/smartphone', label: 'Smartphone' },
@@ -18,6 +15,7 @@ const HELP_LINKS = [
 
 const AKSES_KHUSUS_LINKS = [
   { href: '/admin/add_product', label: 'Tambah Produk' },
+  { href: '/admin/product', label: 'Edit Produk' },
 
 ];
 
@@ -85,7 +83,7 @@ export default function Footer() {
 
           {/* Kolom 4: Menu Navigasi / Admin*/}
           <div>
-            <h4 className="text-white font-medium mb-4 text-xs tracking-wider uppercase">Akses Khusus atau Admin</h4>
+            <h4 className="text-white font-medium mb-4 text-xs tracking-wider uppercase">Akses Khusus atau Admin Panel</h4>
             <ul className="space-y-2.5">
               {AKSES_KHUSUS_LINKS.map((link) => (
                 <li key={link.href}>
