@@ -115,6 +115,14 @@ export default function Header() {
           >
             Login
           </Link>
+
+          {/* Register */}
+          <Link
+            href="/register"
+            className="text-sm font-medium px-4 py-1.5 rounded-full border border-gray-300 dark:border-neutral-700 hover:bg-gray-100 dark:hover:bg-neutral-900 transition-colors"
+          >
+            Register
+          </Link>
         </div>
 
 

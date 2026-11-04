@@ -2,17 +2,33 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 
 type Category = {
   id: number;
   name: string;
 };
+
+// Sama dengan aturan backend (config.py): png/jpg/jpeg/webp/gif, maks 3 MB
+const ALLOWED_IMAGE_TYPES = ["image/png", "image/jpeg", "image/webp", "image/gif"];
+const MAX_IMAGE_SIZE = 3 * 1024 * 1024;
+
 export default function ProductForm({ productId }: { productId?: string }) {
   const router = useRouter();
   const isEdit = Boolean(productId);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(false);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [fileInputKey, setFileInputKey] = useState(0);
+
+  // Hapus URL preview lama dari memori setiap kali diganti / komponen ditutup
+  useEffect(() => {
+    return () => {
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+    };
+  }, [previewUrl]);
 
   useEffect(() => {
     const base = process.env.NEXT_PUBLIC_API_BASE_URL;
@@ -66,6 +82,25 @@ export default function ProductForm({ productId }: { productId?: string }) {
       .catch(() => alert("Gagal memuat data produk."));
   }, [productId]);
 
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] ?? null;
+
+    if (file && !ALLOWED_IMAGE_TYPES.includes(file.type)) {
+      setErrors((prev) => ({ ...prev, image: "Format harus PNG, JPG, WEBP, atau GIF." }));
+      setFileInputKey((k) => k + 1); // kosongkan input
+      return;
+    }
+    if (file && file.size > MAX_IMAGE_SIZE) {
+      setErrors((prev) => ({ ...prev, image: "Ukuran foto maksimal 3 MB." }));
+      setFileInputKey((k) => k + 1);
+      return;
+    }
+
+    setErrors((prev) => ({ ...prev, image: "" }));
+    setImageFile(file);
+    setPreviewUrl(file ? URL.createObjectURL(file) : null);
+  };
+
   const validateForm = () => {
     let isValid = true;
     const newErrors = {
@@ -118,12 +153,17 @@ export default function ProductForm({ productId }: { productId?: string }) {
     if (!validateForm()) return;
 
     setLoading(true);
-    const payload = {
-      ...form,
-      category_id: Number(form.category_id),
-      price: Number(form.price),
-      stock: Number(form.stock),
-    };
+
+    // Semua field dikirim sebagai form-data (bukan JSON) supaya foto bisa ikut
+    const formData = new FormData();
+    formData.append("name", form.name);
+    formData.append("sku", form.sku);
+    formData.append("description", form.description);
+    formData.append("price", String(form.price));
+    formData.append("stock", String(form.stock));
+    formData.append("category_id", form.category_id);
+    formData.append("is_sale", String(form.is_sale));
+    if (imageFile) formData.append("image", imageFile); // hanya jika pilih foto baru
 
     try {
       const base = process.env.NEXT_PUBLIC_API_BASE_URL;
@@ -131,13 +171,13 @@ export default function ProductForm({ productId }: { productId?: string }) {
 
       const res = await fetch(url, {
         method: isEdit ? "PUT" : "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: formData, // JANGAN set Content-Type, browser yang mengisi + boundary
       });
 
       if (!res.ok) {
-        const detail = await res.text();
-        throw new Error(`Gagal menyimpan produk (${res.status}): ${detail}`);
+        // Backend mengirim { error: "..." }; kalau bukan JSON (mis. 413), pakai status
+        const data = await res.json().catch(() => null);
+        throw new Error(data?.error ?? `Gagal menyimpan produk (status ${res.status})`);
       }
 
       if (isEdit) {
@@ -157,9 +197,12 @@ export default function ProductForm({ productId }: { productId?: string }) {
         is_sale: false,
         image: "",
       });
+      setImageFile(null);
+      setPreviewUrl(null);
+      setFileInputKey((k) => k + 1);
     } catch (err) {
       console.error(err);
-      alert("Gagal menyimpan produk. Coba lagi.");
+      alert(err instanceof Error ? err.message : "Gagal menyimpan produk. Coba lagi.");
     } finally {
       setLoading(false);
       }
@@ -289,18 +332,54 @@ export default function ProductForm({ productId }: { productId?: string }) {
             </div>
           </div>
 
-          {/* Image URL */}
+          {/* Foto Produk */}
           <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-              Image URL <span className="text-slate-400 text-xs">(Opsional)</span>
+            <label
+              htmlFor="image"
+              className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1"
+            >
+              Product Image <span className="text-slate-400 text-xs">(Opsional, maks 3 MB)</span>
             </label>
+
+            {/* Preview: foto baru yang dipilih, atau foto lama saat edit */}
+            {(previewUrl || form.image) && (
+              <div className="relative w-40 h-40 mb-3 rounded-lg border border-slate-200 dark:border-slate-600 overflow-hidden bg-slate-100 dark:bg-slate-900">
+                <Image
+                  src={
+                    previewUrl ??
+                    (form.image.startsWith("http")
+                      ? form.image
+                      : `${process.env.NEXT_PUBLIC_API_BASE_URL}${form.image}`)
+                  }
+                  alt={previewUrl ? "Preview foto baru" : "Foto produk saat ini"}
+                  fill
+                  sizes="160px"
+                  unoptimized
+                  className="object-contain"
+                />
+              </div>
+            )}
+
             <input
-              type="text"
-              value={form.image}
-              onChange={(e) => setForm({ ...form, image: e.target.value })}
-              placeholder="https://example.com/image.jpg"
-              className="w-full px-3 py-2 text-sm border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-900 text-slate-900 dark:text-white"
+              key={fileInputKey}
+              id="image"
+              type="file"
+              accept="image/png,image/jpeg,image/webp,image/gif"
+              onChange={handleImageChange}
+              aria-describedby={errors.image ? "image-error" : undefined}
+              className="block w-full text-sm text-slate-700 dark:text-slate-300 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
             />
+
+            {isEdit && !previewUrl && form.image && (
+              <p className="text-xs text-slate-500 mt-1">
+                Kosongkan jika tidak ingin mengganti foto.
+              </p>
+            )}
+            {errors.image && (
+              <p id="image-error" className="text-red-500 text-xs mt-1">
+                {errors.image}
+              </p>
+            )}
           </div>
 
           {/* Sale Checkbox */}
