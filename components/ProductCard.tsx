@@ -39,53 +39,54 @@ export default function ProductCard({
   
   
   return (
-  
     <div className="group relative bg-white border border-gray-200 rounded-2xl p-4 w-56 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col justify-between">
-  <Link href={`/products/${product.id}`} className="block">
-    {/* Area Gambar */}
-    <div className="relative bg-gray-50 h-32 flex items-center justify-center rounded-xl mb-3 overflow-hidden">
-      {product.image ? (
-        <Image
-          src={imageSrc}
-          alt={product.name}
-          fill
-          sizes="224px"
-          className="object-contain p-2 group-hover:scale-105 transition-transform duration-300"
-        />
-      ) : (
-        <span className="text-gray-400 text-xs">No image</span>
-      )}
+      <Link href={`/products/${product.id}`} className="block">
+
+      
+        {/* Badge Sale */}
+        <div className="flex items-center gap-2 mb-1.5">
+          {product.is_sale && (
+            <span className="text-[11px] px-2 py-0.5 rounded-md bg-pink-50 text-pink-600 font-semibold border border-pink-100/60">
+              Sale
+            </span>
+          )}
+        </div>
+        
+        {/* Area Gambar */}
+        <div className="relative bg-gray-50 h-32 flex items-center justify-center rounded-xl mb-3 overflow-hidden">
+          {product.image ? (
+            <Image
+              src={imageSrc}
+              alt={product.name}
+              fill
+              sizes="224px"
+              className="object-contain p-2 group-hover:scale-105 transition-transform duration-300"
+            />
+          ) : (
+            <span className="text-gray-400 text-xs">No image</span>
+          )}
+        </div>
+
+
+        {/* Nama Produk */}
+        <h3 className="font-medium text-sm text-gray-800 line-clamp-2 mb-1.5 group-hover:text-blue-600 transition-colors">
+          {product.name}
+        </h3>
+
+        {/* Harga */}
+        <p className="mb-2 text-sm font-bold text-gray-900">
+          {currency} {product.price.toLocaleString("id-ID")}
+        </p>
+
+        {/* Status Stok */}
+        <div className="mb-3">
+          <Badge variant={product.stock > 0 ? "in-stock" : "out-of-stock"} />
+        </div>
+      </Link>
+
+      {/* Tombol Aksi di luar Link */}
+      <div className="space-y-2 mt-auto pt-2 border-t border-gray-100"> </div>
     </div>
-
-    {/* Badge Sale */}
-    <div className="flex items-center gap-2 mb-1.5">
-      {product.is_sale && (
-        <span className="text-[11px] px-2 py-0.5 rounded-md bg-pink-50 text-pink-600 font-semibold border border-pink-100/60">
-          Sale
-        </span>
-      )}
-    </div>
-
-    {/* Nama Produk */}
-    <h3 className="font-medium text-sm text-gray-800 line-clamp-2 mb-1.5 group-hover:text-blue-600 transition-colors">
-      {product.name}
-    </h3>
-
-    {/* Harga */}
-    <p className="mb-2 text-sm font-bold text-gray-900">
-      {currency} {product.price.toLocaleString("id-ID")}
-    </p>
-
-    {/* Status Stok */}
-    <div className="mb-3">
-      <Badge variant={product.stock > 0 ? "in-stock" : "out-of-stock"} />
-    </div>
-  </Link>
-
-  {/* Tombol Aksi di luar Link */}
-  <div className="space-y-2 mt-auto pt-2 border-t border-gray-100">
-  </div>
-</div>
-  );
-}
+      );
+    }
 
