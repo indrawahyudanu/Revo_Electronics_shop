@@ -46,7 +46,7 @@ export default function RegisterForm() {
     setSubmitting(true);
     try {
       const base = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000';
-      const res = await fetch(`${base}/users`, {
+      const res = await fetch(`${base}/users/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
