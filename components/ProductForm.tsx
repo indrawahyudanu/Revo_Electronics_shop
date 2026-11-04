@@ -1,16 +1,23 @@
 "use client";
 
-import { useState } from "react";
-import type { Category } from "../types/product";
+import { useState, useEffect } from "react";
 
-const categories: Category[] = [
-  { id: 1, name: "TV" },
-  { id: 2, name: "Handphone" },
-  { id: 3, name: "Air Conditioner" },
-  { id: 4, name: "Mesin Cuci" },
-];
+type Category = {
+  id: number;
+  name: string;
+};
 
 export default function ProductForm() {
+  const [categories, setCategories] = useState<Category[]>([]);
+
+  useEffect(() => {
+    const base = process.env.NEXT_PUBLIC_API_BASE_URL;
+    fetch(`${base}/categories/`)
+      .then((res) => res.json())
+      .then((data) => setCategories(data))
+      .catch(() => setCategories([]));
+  }, []);
+
   const [form, setForm] = useState({
     name: "",
     price: 0,
@@ -56,22 +63,34 @@ export default function ProductForm() {
     return isValid;
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  e.preventDefault();
 
-    if (!validateForm()) {
-      console.log("Form masih memiliki error.");
-      return;
-    }
+  if (!validateForm()) return;
 
-    const payload = {
-      ...form,
-      category_id: Number(form.category_id),
-    };
-
-    console.log("Form submit:", payload);
-    alert(`Produk ${form.name} berhasil disimpan!`);
+  const payload = {
+    ...form,
+    category_id: Number(form.category_id),
   };
+
+  try {
+    const base = process.env.NEXT_PUBLIC_API_BASE_URL;
+    const res = await fetch(`${base}/products/`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) throw new Error("Gagal menyimpan produk");
+
+    alert(`Produk ${form.name} berhasil disimpan!`);
+    setForm({ name: "", price: 0, stock: 0, category_id: "", is_sale: false });
+  } catch (err) {
+    console.error(err);
+    alert("Gagal menyimpan produk. Coba lagi.");
+  }
+};
+
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-3 max-w-sm">

@@ -11,7 +11,6 @@ const NAV_LINKS = [
   { href: '/products', label: 'Products' },
   { href: '/categories', label: 'Categories' },
   { href: '/orders',   label: 'Orders' },
-  { href: '/add-product', label: 'Add Product' },
   
 ];
 
