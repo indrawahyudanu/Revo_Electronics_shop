@@ -1,7 +1,9 @@
 "use client";
 
 import type { Product } from "../types/product";
+import { useRouter, usePathname } from "next/navigation";
 import { useCart } from "@/components/CartContex";
+import { isLoggedIn } from "@/lib/auth";
 
 interface AddToCartProps {
   product: Product;
@@ -9,10 +11,21 @@ interface AddToCartProps {
 
 export default function AddToCart({ product }: AddToCartProps) {
   const { addToCart } = useCart();
+  const router = useRouter();
+  const pathname = usePathname();
+
+  // Wajib login dulu sebelum add to cart
+  function handleClick() {
+    if (!isLoggedIn()) {
+      router.push("/login?redirect=" + encodeURIComponent(pathname));
+      return;
+    }
+    addToCart(product);
+  }
 
   return (
     <button
-      onClick={() => addToCart(product)}
+      onClick={handleClick}
       disabled={product.stock === 0}
       className={
         "mt-3 w-full px-4 py-2 rounded text-white text-sm transition " +
