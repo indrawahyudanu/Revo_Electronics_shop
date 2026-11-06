@@ -25,6 +25,25 @@ function safeRedirect(value: string | null): string | null {
   return null;
 }
 
+// Dekode payload (klaim) dari JWT tanpa verifikasi — hanya untuk membaca
+// id/email/role di sisi klien. Verifikasi tetap dilakukan backend.
+function decodeJwt(token: string): Record<string, unknown> | null {
+  try {
+    const payload = token.split('.')[1];
+    if (!payload) return null;
+    const base64 = payload.replace(/-/g, '+').replace(/_/g, '/');
+    const json = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map((c) => '%' + c.charCodeAt(0).toString(16).padStart(2, '0'))
+        .join('')
+    );
+    return JSON.parse(json);
+  } catch {
+    return null;
+  }
+}
+
 export default function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -70,21 +89,25 @@ export default function LoginForm() {
       }
 
       if (res.ok) {
-        const src = (data.user && typeof data.user === 'object' ? data.user : data) as Record<
+        const token = data.token ?? data.access_token;
+        if (typeof token === 'string' && token) localStorage.setItem('token', token);
+
+        // Prefer objek user dari body; jika tidak ada, baca klaim dari JWT.
+        // Backend menaruh id di `sub` (identity) serta email & role di additional_claims.
+        const claims = typeof token === 'string' ? decodeJwt(token) : null;
+        const src = (data.user && typeof data.user === 'object' ? data.user : {}) as Record<
           string,
           unknown
         >;
         localStorage.setItem(
           'user',
           JSON.stringify({
-            id: src.id,
-            username: src.username,
-            email: src.email ?? form.email,
-            role: src.role ?? (mode === 'admin' ? 'admin' : 'customer'),
+            id: src.id ?? claims?.sub,
+            username: src.customer_name ?? src.username,
+            email: src.email ?? claims?.email ?? form.email,
+            role: src.role ?? claims?.role ?? (mode === 'admin' ? 'admin' : 'customer'),
           })
         );
-        const token = data.token ?? data.access_token;
-        if (typeof token === 'string' && token) localStorage.setItem('token', token);
 
         const target = safeRedirect(searchParams.get('redirect')) ?? (mode === 'admin' ? '/admin' : '/');
         router.push(target);

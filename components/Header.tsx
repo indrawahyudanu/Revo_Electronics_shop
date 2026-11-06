@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useCart } from "@/components/CartContex";
+import { useAuth } from "@/components/AuthContext";
 
 
 const NAV_LINKS = [
@@ -19,6 +20,7 @@ const NAV_LINKS = [
 
 export default function Header() {
   const { totalItems } = useCart();
+  const { currentUser, isLoggedIn, logout } = useAuth();
   const pathname = usePathname();
   const router = useRouter();
   const [query, setQuery] = useState('');
@@ -30,8 +32,20 @@ export default function Header() {
     }
   };
 
+  const handleLogout = () => {
+    logout();
+    router.push('/');
+  };
+
+  // Warna header berbeda saat user sudah login
+  const headerClass = isLoggedIn
+    ? 'bg-blue-50/90 dark:bg-blue-950/60 border-blue-200/70 dark:border-blue-900'
+    : 'bg-white/80 dark:bg-black/80 border-gray-200/60 dark:border-neutral-800';
+
   return (
-    <header className="sticky top-0 z-50 backdrop-blur-md bg-white/80 dark:bg-black/80 border-b border-gray-200/60 dark:border-neutral-800 transition-colors">
+    <header
+      className={`sticky top-0 z-50 backdrop-blur-md border-b transition-colors ${headerClass}`}
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
         
         {/* Logo / Brand Toko */}
@@ -108,21 +122,41 @@ export default function Header() {
 
           </Link>
 
-          {/* Login */}
-          <Link
-            href="/login"
-            className="text-sm font-medium px-4 py-1.5 rounded-full bg-blue-600 text-white hover:bg-blue-700 transition-colors"
-          >
-            Login
-          </Link>
+          {isLoggedIn ? (
+            <>
+              {/* Greeting */}
+              <span className="hidden sm:inline text-sm font-medium text-blue-700 dark:text-blue-300">
+                Hi, {currentUser?.username ?? currentUser?.email ?? 'User'}
+              </span>
 
-          {/* Register */}
-          <Link
-            href="/register"
-            className="text-sm font-medium px-4 py-1.5 rounded-full border border-gray-300 dark:border-neutral-700 hover:bg-gray-100 dark:hover:bg-neutral-900 transition-colors"
-          >
-            Register
-          </Link>
+              {/* Logout */}
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="text-sm font-medium px-4 py-1.5 rounded-full border border-blue-300 dark:border-blue-800 text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900 transition-colors"
+              >
+                Logout
+              </button>
+            </>
+          ) : (
+            <>
+              {/* Login */}
+              <Link
+                href="/login"
+                className="text-sm font-medium px-4 py-1.5 rounded-full bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+              >
+                Login
+              </Link>
+
+              {/* Register */}
+              <Link
+                href="/register"
+                className="text-sm font-medium px-4 py-1.5 rounded-full border border-gray-300 dark:border-neutral-700 hover:bg-gray-100 dark:hover:bg-neutral-900 transition-colors"
+              >
+                Register
+              </Link>
+            </>
+          )}
         </div>
 
 

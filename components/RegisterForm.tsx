@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import type { RegisterFormData } from '@/types/product';
+import { useAuth } from '@/components/AuthContext';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -50,30 +51,33 @@ export default function RegisterForm() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          username: form.username,
+          customer_name: form.username,
           email: form.email,
-          password_hash: form.password,
+          password: form.password,
         }),
       });
 
+      const data = await res.json().catch(() => ({}));
+
       if (res.status === 201) {
-        const user = await res.json();
+        const user = data.new_user ?? {};
         localStorage.setItem(
           'user',
           JSON.stringify({
             id: user.id,
-            username: user.username,
+            username: user.customer_name,
             email: user.email,
             role: user.role,
           })
         );
         setRedirectedTo('/');
         router.push('/');
-      } else if (res.status === 409) {
-        const data = await res.json();
-        setFormError(data.error || 'Email already registered');
+      } else if (res.status === 400) {
+        // Backend mengembalikan 400 untuk duplikat (status "fail")
+        // maupun field kosong (key "error").
+        setFormError(data.message || data.error || 'Registration failed. Please try again.');
       } else {
-        setFormError('Registration failed. Please try again.');
+        setFormError(data.message || 'Registration failed. Please try again.');
       }
     } catch {
       setFormError('Unable to reach the server. Please try again.');
