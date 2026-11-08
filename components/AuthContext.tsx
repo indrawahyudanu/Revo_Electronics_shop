@@ -19,6 +19,8 @@ export interface AuthUser {
 interface AuthContextType {
   currentUser: AuthUser | null;
   isLoggedIn: boolean;
+  // true setelah sesi dipulihkan dari localStorage (hindari flicker/guard salah)
+  ready: boolean;
   login: (user: AuthUser) => void;
   logout: () => void;
 }
@@ -27,6 +29,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [currentUser, setCurrentUser] = useState<AuthUser | null>(null);
+  const [ready, setReady] = useState(false);
 
   // Pulihkan sesi saat mount dari localStorage ('user' diisi oleh Login/Register)
   useEffect(() => {
@@ -35,6 +38,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (raw) setCurrentUser(JSON.parse(raw));
     } catch {
       // abaikan JSON rusak
+    } finally {
+      setReady(true);
     }
   }, []);
 
@@ -51,7 +56,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ currentUser, isLoggedIn: currentUser !== null, login, logout }}
+      value={{ currentUser, isLoggedIn: currentUser !== null, ready, login, logout }}
     >
       {children}
     </AuthContext.Provider>
