@@ -10,6 +10,9 @@ export default function AdminPage() {
         <Link href="/admin/orders" className="text-blue-600 hover:underline">
           Kelola Pesanan
         </Link>
+        <Link href="/admin/users" className="text-blue-600 hover:underline">
+          Kelola User
+        </Link>
         <Link href="/admin/add_product" className="text-blue-600 hover:underline">
           + Tambah Produk
         </Link>
