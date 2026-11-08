@@ -7,10 +7,26 @@ import { useAuth } from '@/components/AuthContext';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+// Batas tunggu request ke backend. Render free tier bisa "cold start"
+// (server tidur) dan butuh beberapa puluh detik untuk bangun, jadi kita
+// beri waktu agak longgar sebelum menyerah.
+const REQUEST_TIMEOUT_MS = 30000;
+
+async function fetchWithTimeout(input: string, init: RequestInit, ms: number) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), ms);
+  try {
+    return await fetch(input, { ...init, signal: controller.signal });
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 type RegisterErrors = Partial<Record<keyof RegisterFormData, string>>;
 
 export default function RegisterForm() {
   const router = useRouter();
+  const { login } = useAuth();
   const [form, setForm] = useState<RegisterFormData>({
     username: '',
     email: '',
@@ -47,29 +63,32 @@ export default function RegisterForm() {
     setSubmitting(true);
     try {
       const base = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000';
-      const res = await fetch(`${base}/users/`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          customer_name: form.username,
-          email: form.email,
-          password: form.password,
-        }),
-      });
+      const res = await fetchWithTimeout(
+        `${base}/users/`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            customer_name: form.username,
+            email: form.email,
+            password: form.password,
+          }),
+        },
+        REQUEST_TIMEOUT_MS
+      );
 
       const data = await res.json().catch(() => ({}));
 
       if (res.status === 201) {
         const user = data.new_user ?? {};
-        localStorage.setItem(
-          'user',
-          JSON.stringify({
-            id: user.id,
-            username: user.customer_name,
-            email: user.email,
-            role: user.role,
-          })
-        );
+        // login() memperbarui state AuthContext (Header langsung berubah,
+        // tanpa perlu refresh) sekaligus menyimpan ke localStorage.
+        login({
+          id: user.id,
+          username: user.customer_name,
+          email: user.email,
+          role: user.role,
+        });
         setRedirectedTo('/');
         router.push('/');
       } else if (res.status === 400) {
@@ -79,8 +98,14 @@ export default function RegisterForm() {
       } else {
         setFormError(data.message || 'Registration failed. Please try again.');
       }
-    } catch {
-      setFormError('Unable to reach the server. Please try again.');
+    } catch (err) {
+      if (err instanceof DOMException && err.name === 'AbortError') {
+        setFormError(
+          'Server tidak merespons (mungkin sedang "bangun" dari idle). Tunggu sebentar lalu coba lagi.'
+        );
+      } else {
+        setFormError('Unable to reach the server. Please try again.');
+      }
     } finally {
       setSubmitting(false);
     }

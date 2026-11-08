@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { useAuth } from '@/components/AuthContext';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -23,6 +24,20 @@ function buildLoginBody(email: string, password: string) {
 function safeRedirect(value: string | null): string | null {
   if (value && value.startsWith('/') && !value.startsWith('//')) return value;
   return null;
+}
+
+// Batas tunggu request ke backend. Render free tier bisa "cold start"
+// (server tidur) dan butuh beberapa puluh detik untuk bangun.
+const REQUEST_TIMEOUT_MS = 30000;
+
+async function fetchWithTimeout(input: string, init: RequestInit, ms: number) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), ms);
+  try {
+    return await fetch(input, { ...init, signal: controller.signal });
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 // Dekode payload (klaim) dari JWT tanpa verifikasi — hanya untuk membaca
@@ -47,6 +62,7 @@ function decodeJwt(token: string): Record<string, unknown> | null {
 export default function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { login } = useAuth();
   const [mode, setMode] = useState<Mode>('user');
   const [form, setForm] = useState({ email: '', password: '' });
   const [errors, setErrors] = useState<LoginErrors>({});
@@ -75,11 +91,15 @@ export default function LoginForm() {
     setSubmitting(true);
     try {
       const base = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000';
-      const res = await fetch(`${base}${ENDPOINTS[mode]}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(buildLoginBody(form.email, form.password)),
-      });
+      const res = await fetchWithTimeout(
+        `${base}${ENDPOINTS[mode]}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(buildLoginBody(form.email, form.password)),
+        },
+        REQUEST_TIMEOUT_MS
+      );
 
       let data: Record<string, unknown> = {};
       try {
@@ -99,15 +119,16 @@ export default function LoginForm() {
           string,
           unknown
         >;
-        localStorage.setItem(
-          'user',
-          JSON.stringify({
-            id: src.id ?? claims?.sub,
-            username: src.customer_name ?? src.username,
-            email: src.email ?? claims?.email ?? form.email,
-            role: src.role ?? claims?.role ?? (mode === 'admin' ? 'admin' : 'customer'),
-          })
-        );
+        // login() memperbarui state AuthContext (Header langsung berubah,
+        // tanpa perlu refresh) sekaligus menyimpan ke localStorage.
+        login({
+          id: (src.id ?? claims?.sub) as string | number,
+          username: (src.customer_name ?? src.username) as string | undefined,
+          email: (src.email ?? claims?.email ?? form.email) as string | undefined,
+          role: (src.role ?? claims?.role ?? (mode === 'admin' ? 'admin' : 'customer')) as
+            | string
+            | undefined,
+        });
 
         const target = safeRedirect(searchParams.get('redirect')) ?? (mode === 'admin' ? '/admin' : '/');
         router.push(target);
@@ -115,8 +136,14 @@ export default function LoginForm() {
         const msg = data.error ?? data.message;
         setFormError(typeof msg === 'string' && msg ? msg : 'Invalid email or password');
       }
-    } catch {
-      setFormError('Unable to reach the server. Please try again.');
+    } catch (err) {
+      if (err instanceof DOMException && err.name === 'AbortError') {
+        setFormError(
+          'Server tidak merespons (mungkin sedang "bangun" dari idle). Tunggu sebentar lalu coba lagi.'
+        );
+      } else {
+        setFormError('Unable to reach the server. Please try again.');
+      }
     } finally {
       setSubmitting(false);
     }
