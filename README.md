@@ -1,8 +1,11 @@
 # Revo Electronics Shop (RevoShop)
 
-RevoShop adalah aplikasi web toko online elektronik yang dibangun dengan **Next.js (App Router)**, **TypeScript**, dan **Tailwind CSS**. Data produk dan kategori diambil dari **API backend Flask** (di-deploy di Render). Aplikasi dilengkapi pencarian, halaman detail, keranjang belanja berbasis React Context, register/login (User & Admin), serta halaman admin untuk mengelola produk.
+RevoShop adalah aplikasi web toko online elektronik yang dibangun dengan **Next.js (App Router)**, **TypeScript**, dan **Tailwind CSS**. Data produk dan kategori diambil dari **API backend Flask** (di-deploy di Render). Aplikasi dilengkapi pencarian, halaman detail, keranjang belanja berbasis React Context, checkout/buat pesanan, register/login (User & Admin), serta panel admin (terproteksi) untuk mengelola produk, pesanan, dan role user.
 
 🔗 **Live demo:** https://revoshop-seven.vercel.app
+
+
+
 
 ## Tampilan
 

@@ -1,11 +1,50 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useCart } from "@/components/CartContex";
+import { useAuth } from "@/components/AuthContext";
+import { createOrder } from "@/lib/orders";
 import CartSummary from "@/components/CartSummary";
 
 export default function CartPage() {
-  const { cart, removeFromCart } = useCart();
+  const { cart, removeFromCart, clearCart } = useCart();
+  const { isLoggedIn, ready } = useAuth();
+  const router = useRouter();
+
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const total = cart.reduce(
+    (sum, item) => sum + item.product.price * item.quantity,
+    0
+  );
+
+  async function handleCheckout() {
+    setError(null);
+
+    // Buat order butuh login (backend ambil user dari token).
+    if (!isLoggedIn) {
+      router.push("/login?redirect=/cart");
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const items = cart.map((it) => ({
+        productId: it.product.id,
+        quantity: it.quantity,
+      }));
+      await createOrder(items, total);
+      clearCart();
+      router.push("/orders");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Gagal membuat pesanan");
+    } finally {
+      setSubmitting(false);
+    }
+  }
 
   // Kalau keranjang kosong
   if (cart.length === 0) {
@@ -57,6 +96,25 @@ export default function CartPage() {
 
       {/* Ringkasan total */}
       <CartSummary cart={cart} />
+
+      {error && (
+        <p className="mt-4 text-sm bg-red-50 text-red-700 border border-red-200 rounded px-3 py-2">
+          {error}
+        </p>
+      )}
+
+      {/* Checkout / Buat Pesanan */}
+      <button
+        onClick={handleCheckout}
+        disabled={submitting || !ready}
+        className="w-full mt-4 px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
+      >
+        {submitting
+          ? "Memproses…"
+          : isLoggedIn
+          ? "Buat Pesanan"
+          : "Login untuk Memesan"}
+      </button>
     </div>
   );
 }

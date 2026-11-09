@@ -64,6 +64,64 @@ export async function fetchOrders(signal?: AbortSignal): Promise<Order[]> {
   return list.map((o) => normalizeOrder(o as Record<string, unknown>));
 }
 
+// Satu baris item yang dikirim saat membuat order.
+export interface NewOrderItem {
+  productId: number | string;
+  quantity: number;
+}
+
+// POST /orders -> buat order baru dari isi keranjang.
+// user_id diambil backend dari token (tidak dikirim dari sini).
+export async function createOrder(
+  items: NewOrderItem[],
+  total: number,
+  signal?: AbortSignal
+): Promise<Order> {
+  const token =
+    typeof window !== "undefined" ? localStorage.getItem("token") : null;
+
+  const res = await fetch(`${API_BASE}/orders`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    // Kirim dua gaya penamaan agar cocok dengan backend snake_case/camelCase.
+    body: JSON.stringify({
+      total,
+      items: items.map((it) => ({
+        product_id: it.productId,
+        productId: it.productId,
+        quantity: it.quantity,
+      })),
+    }),
+    signal,
+  });
+
+  const data = await res.json().catch(() => ({}));
+
+  if (!res.ok) {
+    const msg =
+      (data as Record<string, unknown>)?.error ??
+      (data as Record<string, unknown>)?.message;
+    throw new Error(
+      typeof msg === "string" && msg ? msg : `Gagal membuat order (${res.status})`
+    );
+  }
+
+  // Backend bisa membungkus order di { order: {...} } atau mengembalikannya langsung.
+  const orderObj =
+    (data as Record<string, unknown>)?.order ??
+    (data as Record<string, unknown>)?.new_order ??
+    data;
+
+  return normalizeOrder(
+    (orderObj && typeof orderObj === "object"
+      ? (orderObj as Record<string, unknown>)
+      : {}) as Record<string, unknown>
+  );
+}
+
 // Hook pemuat order dengan status loading & error, dipakai bersama oleh
 // halaman customer dan admin.
 export function useOrders() {
